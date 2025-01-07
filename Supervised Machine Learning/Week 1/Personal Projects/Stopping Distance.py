@@ -3,6 +3,17 @@ import matplotlib.pyplot as plt
 
 plt.style.use('ggplot')
 
+
+# What I learned by doing this project:
+# - Handling overflows
+# - Having a verbose training set is crucial for the model to work right, even if it's a basic model
+# - Knowing how to fit your model around the training set is very important
+
+# How to improve the model?
+# - Use a curved line function (Will learn that in week 2 and implement it here)
+# - Make the training set even more verbose
+
+
 def compute_gradient(x, y, w ,b):
     m = x.shape[0];
     dj_dw = 0   
@@ -60,6 +71,8 @@ def predict(w, b, n):
     distance_to_stop = w * (x_i/10) + b    
 
     return distance_to_stop, x_i
+
+# Training set built around Forensic Dynamics Inc.'s Braking Calculator - http://www.forensicdynamics.com/stopping-braking-distance-calculator
 
 x_train = np.array([10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 
                    120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200]).astype(np.float64) # speed (km/h)
