@@ -8,11 +8,6 @@ plt.style.use('ggplot')
 # - Having a verbose training set is crucial for the model to work right, even if it's a basic model
 # - Knowing how to fit your model around the training set is very important in order for the model to work properly (wihtout overflows)
 
-# How to improve the model?
-# - Use a curved line function (Will learn that in week 2 and implement it here)
-# - Make the training set even more verbose
-
-
 def compute_gradient(x, y, w ,b):
     m = x.shape[0];
     dj_dw = 0   
