@@ -91,12 +91,13 @@ def custom_train_and_predict(X, y, subject):
     w_norm, b_norm = run_gradient_descent(X_norm, y, 1000, 1.0e-1)
     X_features = ['age','gender','bmi','children', 'smoker', 'region']
 
-    fig,ax=plt.subplots(1, 6, figsize=(12, 3), sharey=True)
-    for i in range(len(ax)):
-        ax[i].scatter(X[:,i],y)
-        ax[i].set_xlabel(X_features[i])
-    ax[0].set_ylabel("Outcome for Students")
-    plt.show()
+    # UNCOMMENT TO DISPLAY GRAPHICAL DATA
+    # fig,ax=plt.subplots(1, 6, figsize=(12, 3), sharey=True)
+    # for i in range(len(ax)):
+    #     ax[i].scatter(X[:,i],y)
+    #     ax[i].set_xlabel(X_features[i])
+    # ax[0].set_ylabel("Outcome for Students")
+    # plt.show()
 
     x_subj = subject
     x_subj_norm = (x_subj - X_mu) / X_sigma
@@ -120,6 +121,23 @@ def create_avg_test_subj(data, age_group):
     patient = np.array([avg_age, leading_gender, avg_bmi, avg_children, smoking_status, avg_region])       
     custom_train_and_predict(X, y, patient)  
 
+
+def create_random_test_subj(data, age_group):
+    rnd_age = data['age'].sample(n=1).values[0]
+    rnd_gender = data['gender'].sample(n=1).values[0]
+    rnd_bmi = data['bmi'].sample(n=1).values[0]
+    rnd_children = data['children'].sample(n=1).values[0]
+    rnd_smoking = data['smoker'].sample(n=1).values[0]
+    rnd_region = data['region'].sample(n=1).values[0]
+
+    X = data[X_columns].to_numpy()
+    y = data['charges'].to_numpy()
+         
+    print(f"Computing random test subject from {len(X)} cases in the {age_group} group.")
+    print(f"Age: {rnd_age}, gender: {rnd_gender}, BMI: {rnd_bmi}, children: {rnd_children}, smoker: {rnd_smoking}, region: {rnd_region}")
+        
+    patient = np.array([rnd_age, rnd_gender, rnd_bmi, rnd_children, rnd_smoking, rnd_region])       
+    custom_train_and_predict(X, y, patient)  
 
 file_path = 'data/insurance.csv'
 df = pd.read_csv(file_path)
@@ -163,20 +181,39 @@ X_columns = ['age', 'gender', 'bmi', 'children', 'smoker', 'region']
 ##########################################################
 for age_group, data in age_ranges.items():
     if age_group == 'students':
+        print("STUDENTS")
         create_avg_test_subj(data, age_group)
+        # create random test subject
+        create_random_test_subj(data, age_group)
+        print()
         
     if age_group == 'young adults':
+        print("YOUNG ADULTS")
         create_avg_test_subj(data, age_group)
+        create_random_test_subj(data, age_group)
+        print()
         
     if age_group == 'adults':
+        print("ADULTS")
         create_avg_test_subj(data, age_group)
+        create_random_test_subj(data, age_group)
+        print()
      
     if age_group == 'senior adults':
+        print("SENIOR ADULTS")
         create_avg_test_subj(data, age_group)
+        create_random_test_subj(data, age_group)
+        print()
      
     if age_group == 'seniors':
+        print("SENIORS")
         create_avg_test_subj(data, age_group)
+        create_random_test_subj(data, age_group)
+        print()
      
 
 # Now for the entire dataset
+print("GLOBAL")        
 create_avg_test_subj(df, "global")
+create_random_test_subj(df, "global")
+
