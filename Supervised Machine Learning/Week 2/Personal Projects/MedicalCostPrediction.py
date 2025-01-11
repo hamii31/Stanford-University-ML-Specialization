@@ -1,13 +1,15 @@
+from re import X
 import numpy as np
 import math, copy
 import matplotlib.pyplot as plt
+import pandas as pd
 
 np.set_printoptions(precision=2)
 plt.style.use('ggplot')
 
 ##########################################################
 # Title:  Medical Cost Prediction 
-# Model: Multiple Linear Regression
+# Model: Multiple Linear Regression, Segmented
 # Algorithms: Cost Function, Gradient Descent, Z-Score Normalization (Standard Deviation, Mean)
 # Dataset: https://github.com/stedy/Machine-Learning-with-R-datasets/blob/master/insurance.csv
 # Goal: To predict medical expenses based on their demographic, lifestyle, and health-related factors.
@@ -84,55 +86,97 @@ def zscore_normalize_features(X,rtn_ms=False):
     else:
         return(X_norm)
     
-X_train = np.array([[19, 0, 27.9, 0, 1, 0], [18, 1, 33.77, 1, 0, 1], [28, 1, 33, 3, 0, 1], [33, 1, 22.705, 0, 0, 3], [32, 1, 28.88, 0, 0, 3],
-                    [31, 0, 25.74, 0, 0, 1], [46, 0, 33.44, 1, 0, 1], [37, 0, 27.74, 3, 0, 3], [37, 1, 29.83, 2, 0, 2], [60, 0, 25.84, 0, 0, 3],
-                    [25, 1, 26.22, 0, 0, 2], [62, 0, 26.29, 0, 1, 2], [23, 1, 34.4, 0, 0, 0]]) # age, sex, bmi ratio, children count, smoker, region
+def custom_train_and_predict(X, y, subject):
+    X_norm, X_mu, X_sigma = zscore_normalize_features(X, True)
+    w_norm, b_norm = run_gradient_descent(X_norm, y, 1000, 1.0e-1)
+    X_features = ['age','gender','bmi','children', 'smoker', 'region']
 
-y_train = np.array([16884.924, 1725.5523, 4449.462, 21984.47061, 3866.8552, 3756.6216, 8240.5896, 7281.5056, 6406.4107, 28923.13692,
-                    2721.3208, 27808.7251, 1826.843]) # insurance cost in dollars
+    fig,ax=plt.subplots(1, 6, figsize=(12, 3), sharey=True)
+    for i in range(len(ax)):
+        ax[i].scatter(X[:,i],y)
+        ax[i].set_xlabel(X_features[i])
+    ax[0].set_ylabel("Outcome for Students")
+    plt.show()
 
-X_features = ['age','sex','bmi','children', 'smoker', 'region'] # sex: 1 = male, 0 = female, smoker: 1 = yes, 0 = no, region: 0 = southwest, 1 = southeast, 2 = northeast, 3 = northwest
-
-
-# normalize the original features
-X_norm, X_mu, X_sigma = zscore_normalize_features(X_train, True)
-
-# Run gradient descent algorithm with normalized data. Note the vastly larger value of alpha. This will speed up gradient descent.
-w_norm, b_norm = run_gradient_descent(X_norm, y_train, 1000, 1.0e-1, )
-
-
-# Plot
-fig,ax=plt.subplots(1, 6, figsize=(12, 3), sharey=True)
-
-for i in range(len(ax)):
-    ax[i].scatter(X_train[:,i],y_train)
-    ax[i].set_xlabel(X_features[i])
-ax[0].set_ylabel("Outcome")
-plt.show()
-
-# Evaluate 
-
-# Men
-x_patient = np.array([20, 1, 22.5, 0, 0, 0])
-x_patient_normalized = (x_patient - X_mu) / X_sigma
-x_patient_predict = np.dot(x_patient_normalized, w_norm) + b_norm
-print(f"Predicted insurance cost for a man in his 20s, BMI 22.5, no kids, doesn't smoke, from the southwest: ${x_patient_predict:0.2f}")
-
-x_patient = np.array([20, 1, 22.5, 0, 0, 3])
-x_patient_normalized = (x_patient - X_mu) / X_sigma
-x_patient_predict = np.dot(x_patient_normalized, w_norm) + b_norm
-print(f"Predicted insurance cost for a man in his 20s, BMI 22.5, no kids, doesn't smoke, from the northwest: ${x_patient_predict:0.2f}")
-
-# Women
-x_patient = np.array([20, 0, 22.5, 0, 0, 1])
-x_patient_normalized = (x_patient - X_mu) / X_sigma
-x_patient_predict = np.dot(x_patient_normalized, w_norm) + b_norm
-print(f"Predicted insurance cost for a woman in her 20s, BMI 22.5, no kids, doesn't smoke, from the southeast: ${x_patient_predict:0.2f}")
-
-x_patient = np.array([20, 0, 22.5, 0, 0, 2])
-x_patient_normalized = (x_patient - X_mu) / X_sigma
-x_patient_predict = np.dot(x_patient_normalized, w_norm) + b_norm
-print(f"Predicted insurance cost for a woman in her 20s, BMI 22.5, no kids, doesn't smoke, from the northeast: ${x_patient_predict:0.2f}")
+    x_subj = subject
+    x_subj_norm = (x_subj - X_mu) / X_sigma
+    x_subj_predict = np.dot(x_subj_norm, w_norm) + b_norm
+    print(f"Predicted medical cost: ${x_subj_predict:0.2f}")
+    
+def create_avg_test_subj(data, age_group):
+    avg_age = math.ceil(data['age'].mean())
+    leading_gender = data['gender'].value_counts().idxmax()
+    avg_bmi = math.ceil(data['bmi'].mean())
+    avg_children = math.ceil(data['children'].mean())
+    smoking_status = data['smoker'].value_counts().idxmax()
+    avg_region = math.ceil(data['region'].mean())
+        
+    X = data[X_columns].to_numpy()
+    y = data['charges'].to_numpy()
+         
+    print(f"Computing average test subject from {len(X)} cases in the {age_group} group.")
+    print(f"Age: {avg_age}, gender: {leading_gender}, BMI: {avg_bmi}, children: {avg_children}, smoker: {smoking_status}, region: {avg_region}")
+        
+    patient = np.array([avg_age, leading_gender, avg_bmi, avg_children, smoking_status, avg_region])       
+    custom_train_and_predict(X, y, patient)  
 
 
+file_path = 'data/insurance.csv'
+df = pd.read_csv(file_path)
 
+# mappings
+gender_mapping = {
+        'male':1,
+        'female':0
+    }
+
+smoker_mapping = {
+        'yes':1,
+        'no':0
+    }
+
+region_mapping = {
+        'southwest':0,
+        'southeast':1,
+        'northwest':2,
+        'northeast':3
+    }
+
+# Map the columns 
+df['gender'] = df['gender'].map(gender_mapping)
+df['smoker'] = df['smoker'].map(smoker_mapping)
+df['region'] = df['region'].map(region_mapping)
+
+# Define age ranges
+age_ranges = {
+    'students': df[(df['age'] >= 18) & (df['age'] <= 24)],
+    'young adults': df[(df['age'] >= 25) & (df['age'] <= 35)],
+    'adults': df[(df['age'] >= 36) & (df['age'] <= 49)],
+    'senior adults': df[(df['age'] >= 49) & (df['age'] <= 59)],
+    'seniors': df[df['age'] >= 60]
+}
+
+X_columns = ['age', 'gender', 'bmi', 'children', 'smoker', 'region']  
+
+##########################################################
+# Model Segmentation
+##########################################################
+for age_group, data in age_ranges.items():
+    if age_group == 'students':
+        create_avg_test_subj(data, age_group)
+        
+    if age_group == 'young adults':
+        create_avg_test_subj(data, age_group)
+        
+    if age_group == 'adults':
+        create_avg_test_subj(data, age_group)
+     
+    if age_group == 'senior adults':
+        create_avg_test_subj(data, age_group)
+     
+    if age_group == 'seniors':
+        create_avg_test_subj(data, age_group)
+     
+
+# Now for the entire dataset
+create_avg_test_subj(df, "global")
