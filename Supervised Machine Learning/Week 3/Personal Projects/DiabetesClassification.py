@@ -7,6 +7,28 @@ import pandas as pd
 np.set_printoptions(precision=2)
 plt.style.use('ggplot')
 
+##########################################################
+# Title:  Diabetes Classification  
+# Model: Logistic Regression
+# Algorithms: Logistic Cost Function, Logistic Gradient Descent, Z-Score Normalization (Standard Deviation, Mean)
+# Dataset: https://www.kaggle.com/datasets/mathchi/diabetes-data-set
+# Goal: To determine whether the patient has diabetes or not based on factors like:
+    # Pregnancies: Number of times pregnant
+    # Glucose: Plasma glucose concentration after 2 hours from an oral glucose tolerance test
+    # BloodPressure: Diastolic blood pressure (mm Hg)
+    # SkinThickness: Triceps skin fold thickness (mm)
+    # Insulin: 2-Hour serum insulin (mu U/ml)
+    # BMI: Body mass index (weight in kg/(height in m)^2)
+    # DiabetesPedigreeFunction: Diabetes pedigree function
+    # Age: Age (years)
+    # Outcome: Class variable (0 or 1)
+
+##########################################################
+ 
+##########################################################
+# Algorithms
+##########################################################
+
 
 # SIGMOID FUNCTION
 def sigmoid(z):
@@ -142,4 +164,3 @@ subject = np.array([6, 148, 72, 35, 0, 23, 0.627, 50]) # 0.50
 make_prediction(subject, X_mu, X_sigma)
 print()
 # The BMI is also a cornerstone for diabetes. 
-
