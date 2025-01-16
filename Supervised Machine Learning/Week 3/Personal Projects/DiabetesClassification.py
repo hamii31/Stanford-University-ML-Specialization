@@ -143,13 +143,3 @@ make_prediction(subject, X_mu, X_sigma)
 print()
 # The BMI is also a cornerstone for diabetes. 
 
-print('How does only lowering the blood pressure affect the result of the original subject?')
-subject = np.array([6, 148, 50, 35, 0, 33.6, 0.627, 50]) # 0.78 
-make_prediction(subject, X_mu, X_sigma)
-print()
-# An interesting outcome. Lowering the blood pressure made the outcome worse. What will happen if we raise it?
-
-print('How does bringing the blood pressure up affect the result of the original subject?')
-subject = np.array([6, 148, 90, 35, 0, 33.6, 0.627, 50]) # 
-make_prediction(subject, X_mu, X_sigma)
-print()
