@@ -90,6 +90,10 @@ file_path = 'data/diabetes.csv'
 df = pd.read_csv(file_path)
 
 X_columns = ['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age']
+# Diabetes Pedigree Function (DPF) - The genetic likelihood of developing diabetes. The higher the number, the more likely to develop diabetes. 
+# Example: You have one person with diabetes in your family. The DPF number might be around 0.5 and 1.
+# Example 2: You have more than one person with diabetes in your family. The DPF number will be or above 1. 
+# Example 3: You have no diabetes family history. The DPF number might be around 0 and 0.5.
 
 X_train = df[X_columns].to_numpy()
 y_train = df['Outcome'].to_numpy()
@@ -108,19 +112,44 @@ print("Running gradient descent...")
 w_out, b_out = gradient_descent(X_norm, y_train, w_tmp, b_tmp, alph, iters) 
 print(f"Best parameters: w:{w_out}, b:{b_out}") # Last values will be the best parameters because the cost is the lowest
 
-# TEST 
+# TESTING
 print('Original subject')
-subject = np.array([6, 148, 72, 35, 0, 33.6, 0.627, 50]) # 1
+subject = np.array([6, 148, 72, 35, 0, 33.6, 0.627, 50]) # 0.72
 make_prediction(subject, X_mu, X_sigma)
+print()
 
-print('How does having no pregnancies affect the result of the subject?')
-subject = np.array([0, 148, 72, 35, 0, 33.6, 0.627, 50]) # ?
+print('How does only lowering the number of pregnancies affect the result of the original subject?')
+subject = np.array([0, 148, 72, 35, 0, 33.6, 0.627, 50]) # 0.55
 make_prediction(subject, X_mu, X_sigma)
+print()
+# The number of pregnancies definitely affects the outcome.
 
-print('How does being young affect the result of the subject?')
-subject = np.array([6, 148, 72, 35, 0, 33.6, 0.627, 23]) # ?
+print('How does only lowering the age affect the result of the original subject?')
+subject = np.array([6, 148, 72, 35, 0, 33.6, 0.627, 23]) # 0.63
 make_prediction(subject, X_mu, X_sigma)
+print()
+# Although the age is also important to determine the likelihood of diabetes, it is not as important as the number of pregnancies.
 
-print('How does lowering glucose levels affect the result of the subject?')
-subject = np.array([6, 84, 72, 35, 0, 33.6, 0.627, 23]) # ?
+print('How does only lowering glucose levels affect the result of the original subject?')
+subject = np.array([6, 84, 72, 35, 0, 33.6, 0.627, 50]) # 0.21
 make_prediction(subject, X_mu, X_sigma)
+print()
+# Glucose levels turn out to be the most improtant factor in determining if someone has diabetes, no matter the age, number of pregnancies, BMI, 
+# blood pressure, insulin levels, DPF or skin thickness.
+
+print('How does only lowering the BMI affect the result of the original subject?')
+subject = np.array([6, 148, 72, 35, 0, 23, 0.627, 50]) # 0.50
+make_prediction(subject, X_mu, X_sigma)
+print()
+# The BMI is also a cornerstone for diabetes. 
+
+print('How does only lowering the blood pressure affect the result of the original subject?')
+subject = np.array([6, 148, 50, 35, 0, 33.6, 0.627, 50]) # 0.78 
+make_prediction(subject, X_mu, X_sigma)
+print()
+# An interesting outcome. Lowering the blood pressure made the outcome worse. What will happen if we raise it?
+
+print('How does bringing the blood pressure up affect the result of the original subject?')
+subject = np.array([6, 148, 90, 35, 0, 33.6, 0.627, 50]) # 
+make_prediction(subject, X_mu, X_sigma)
+print()
