@@ -185,7 +185,6 @@ y_train = df['diseases'].to_numpy()
 print("Normalizing data set...")
 X_norm, X_mu, X_sigma = zscore_normalize_features(X_train, True)
 
-#UNCOMMENT TO DISPLAY GRAPHICAL DATA
 Column_names = df.columns.tolist()
 
 # RUN GRADIENT DESCENT 
