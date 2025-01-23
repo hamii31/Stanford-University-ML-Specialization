@@ -52,7 +52,7 @@ def compute_cost_logistic_reg(X, y, w, b, lambda_ = 1):
     total_cost = cost + reg_cost                                       
     return total_cost                                                  
 
-# COMPUTE REGULARIZED LOGISTIC GRADIENT DESCENT
+# REGULARIZED LOGISTIC GRADIENT DESCENT
 def compute_gradient_logistic_reg(X, y, w, b, lambda_): 
     m,n = X.shape
     dj_dw = np.zeros((n,))                           
@@ -72,7 +72,7 @@ def compute_gradient_logistic_reg(X, y, w, b, lambda_):
 
     return dj_db, dj_dw  
 
-# GRADIENT DESCENT
+# LOGISTIC GRADIENT DESCENT
 def gradient_descent(X, y, w_in, b_in, alpha, num_iters): 
     w = copy.deepcopy(w_in) 
     b = b_in
