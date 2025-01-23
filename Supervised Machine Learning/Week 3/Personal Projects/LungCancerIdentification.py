@@ -103,7 +103,7 @@ def zscore_normalize_features(X,rtn_ms=False):
     else:
         return(X_norm)
     
-
+# ZERO VARIATION HANDLING
 def remove_zero_variation(X):
     # Calculate the standard deviation for each column
     std_dev = np.std(X, axis=0)
@@ -142,16 +142,13 @@ def loading_bar(iteration, total, length=30):
 file_path = 'data/lungdiseases.csv'
 df = pd.read_csv(file_path)
 
-# Set the split ratio
+# Split dataset in separate sets and shuffle to avoid overfitting 
 train_ratio = 0.9  # 90% training, 10% testing
 
-# Shuffle the DataFrame
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-# Compute the split index
 split_index = int(len(df) * train_ratio)
 
-# Split the DataFrame
 train_df = df.iloc[:split_index]  # First 70% for training
 test_df = df.iloc[split_index:]  # Remaining 30% for testing
 
@@ -166,26 +163,22 @@ X_test = test_df.drop(columns=['diseases']).to_numpy()
 print(X_train.shape[1])
 print(X_test.shape[1])
 
-# Remove zero variation to avoid errors
+# Remove zero variation to avoid overfitting
 X_train, columns = remove_zero_variation(X_train)
 X_test, columns = remove_zero_variation(X_test)
 
 print(columns)
 
-
 print(X_train.shape[1])
 print(X_test.shape[1])
 
-
-# map for panic disorder
+# map the target
 df['diseases'] = df['diseases'].map(lambda x: 1 if x == 'lung cancer' else 0)
 y_train = df['diseases'].to_numpy()
 
-# normalize 
+# normalize the dataset 
 print("Normalizing data set...")
 X_norm, X_mu, X_sigma = zscore_normalize_features(X_train, True)
-
-Column_names = df.columns.tolist()
 
 # RUN GRADIENT DESCENT 
 w_tmp  = np.zeros_like(X_train[0])
