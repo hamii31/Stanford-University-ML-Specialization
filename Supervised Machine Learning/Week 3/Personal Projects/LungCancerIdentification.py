@@ -1,7 +1,7 @@
 from os import remove
 from re import sub
 import numpy as np
-import math, copy
+import math, copy, time, sys
 import matplotlib.pyplot as plt
 import pandas as pd
 import csv
@@ -79,7 +79,7 @@ def gradient_descent(X, y, w_in, b_in, alpha, num_iters):
     lambda_ = 0.7
     
     for i in range(num_iters):
-        print("iteration: ", i)
+        loading_bar(i, num_iters)
         dj_db, dj_dw = compute_gradient_logistic_reg(X, y, w, b, lambda_)   
         w = w - alpha * dj_dw               
         b = b - alpha * dj_db               
@@ -124,20 +124,26 @@ def make_prediction(symptoms, X_mu, X_sigma, iteration):
     symptoms_normalized = (symptoms - X_mu) / X_sigma 
     z_i = np.dot(symptoms_normalized,w_out) + b_out 
     predict = sigmoid(z_i)
-    if predict <= 0.5:
+    
+    if predict > 0.5:
         # Check the lungdiseases_test.csv file to make sure the results are correct
-        print(f"{iteration + 2}:{predict} - Not lung cancer")
-    else:
         percentage = predict * 100
-        print(f"{iteration + 2}:{predict} - {percentage:0.2f}% Lung Cancer")
+        print(f"{iteration + 2}:{percentage:0.2f}% lung cancer")
+        
 
+# LOADING BAR
+def loading_bar(iteration, total, length=30):
+    progress = int((iteration + 1) / total * length)
+    bar = f"[{'#' * progress}{'.' * (length - progress)}]"
+    percent = f"{((iteration + 1) / total) * 100:.2f}%"
+    print(f"\r{bar} {percent} ({iteration + 1}/{total})", end="", flush=True)
 
 
 file_path = 'data/lungdiseases.csv'
 df = pd.read_csv(file_path)
 
 # Set the split ratio
-train_ratio = 0.7  # 70% training, 30% testing
+train_ratio = 0.9  # 90% training, 10% testing
 
 # Shuffle the DataFrame
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -170,6 +176,7 @@ print(columns)
 print(X_train.shape[1])
 print(X_test.shape[1])
 
+
 # map for panic disorder
 df['diseases'] = df['diseases'].map(lambda x: 1 if x == 'lung cancer' else 0)
 y_train = df['diseases'].to_numpy()
@@ -185,14 +192,13 @@ Column_names = df.columns.tolist()
 w_tmp  = np.zeros_like(X_train[0])
 b_tmp  = 0.
 alph = 0.1
-iters = 1000
+iters = 10000
 
 print("Running gradient descent...")
 w_out, b_out = gradient_descent(X_norm, y_train, w_tmp, b_tmp, alph, iters) 
 print(f"Best parameters: w:{w_out}, b:{b_out}") # Last values will be the best parameters because the cost is the lowest
 
-# 1000 iterations - Best parameters: w:[ 0.01 -0.05 -0.04 -0.03  0.01 -0.03 -0.05 -0.01 -0.02 -0.02 -0.04 -0.04 0.48 -0.04  0.42 -0.04 -0.04 -0.05 -0.02  0.51 -0.03 -0.04  0.11 -0.02 -0.02 -0.04  0.36], b:-4.427585843233597
-
 # TESTING
+print(f"Testing {len(X_test)} cases...")
 for i in range(len(X_test)):
     make_prediction(X_test[i], X_mu, X_sigma, i)
