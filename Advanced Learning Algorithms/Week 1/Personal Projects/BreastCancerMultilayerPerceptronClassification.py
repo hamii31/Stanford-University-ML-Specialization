@@ -11,7 +11,7 @@ tf.autograph.set_verbosity(0)
 
 ##########################################################
 # Title: Neural Network Classification Model for Breast Cancer 
-# Model Type: Keras Two-Layered Logistic Regression Neural Network Model
+# Model Type: Multilayered Perceptron
 # Dataset: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic
 
 # Goal: To determine whether the breast tumor is malignant or benign based on these real-valued cell nucleus features:
