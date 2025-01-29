@@ -11,7 +11,7 @@ tf.autograph.set_verbosity(0)
 
 ##########################################################
 # Title: Phishing Detection Neural Network
-# Model Type: Multilayer Neural Network
+# Model Type: Multilayered Peceptron
 # Dataset: https://www.kaggle.com/datasets/shashwatwork/phishing-dataset-for-machine-learning
 
 # This dataset contains 48 features extracted from 5000 phishing webpages and 5000 legitimate webpages, 
