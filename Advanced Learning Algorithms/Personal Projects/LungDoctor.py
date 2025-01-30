@@ -4,10 +4,16 @@ from sklearn.datasets import make_blobs
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import ModelCheckpoint
 np.set_printoptions(precision=2)
 import logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 tf.autograph.set_verbosity(0)
+
+
+# 433 Test Cases, 82% Accuracy
+# Multiclass Classification Neural Network 
+# Lung Doctor
 
 
 def remove_zero_variation(X):
@@ -26,7 +32,7 @@ def remove_zero_variation(X):
 file_path = 'data/lungdiseases.csv'
 df = pd.read_csv(file_path)
 
-train_ratio = 0.9  # 90% training, 10% testing
+train_ratio = 0.9
 
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
@@ -35,7 +41,7 @@ split_index = int(len(df) * train_ratio)
 train_df = df.iloc[:split_index] 
 test_df = df.iloc[split_index:]  
 
-test_df.to_csv("data/lungdiseases_test.csv", index=False)
+test_df["diseases"].to_csv("data/lungdiseases_test.csv", index=False)
 
 print(df.shape[1])
 
@@ -70,8 +76,8 @@ norm_l = tf.keras.layers.Normalization(axis=-1)
 norm_l.adapt(X)  
 Xn = norm_l(X)
 
-Xt = np.tile(Xn,(10,1))
-Yt= np.tile(Y,(10,))   
+Xt = np.tile(Xn,(100,1))
+Yt= np.tile(Y,(100,))   
 
 tf.random.set_seed(1234)
 
@@ -85,26 +91,31 @@ model = Sequential(
 
 model.compile(
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    optimizer=tf.keras.optimizers.Adam(0.001),
+    optimizer=tf.keras.optimizers.Adam(0.0003),
 )
+
+# save best weights
+save_model = "my_model.keras"
+checkpoint = ModelCheckpoint(save_model, monitor="loss", save_best_only=True, mode="min")
 
 model.fit(
     Xt,Yt,
-    epochs=20
+    epochs=50,
+    callbacks=[checkpoint]
 )
+
+# 10, 100 epochs
 
 
 # TESTING
 file_path = 'data/lungdiseases_test.csv'
 check_test_df = pd.read_csv(file_path)
 
-prediction = model.predict(X_test)
-print(f"two example output vectors:\n {prediction[:2]}")
-print("largest value", np.max(prediction), "smallest value", np.min(prediction))
+# Load the saved best weights (Uncomment)
+# model.load_weights("save_model")
 
-softmax = tf.nn.softmax(prediction).numpy()
-print(f"two example output vectors:\n {softmax[:2]}")
-print("largest value", np.max(softmax), "smallest value", np.min(softmax))
+logits = model.predict(X_test)
+f_x = tf.nn.softmax(logits).numpy()
 
 def reverse_mapping(disease):
     match disease:
@@ -126,7 +137,7 @@ def reverse_mapping(disease):
             return "Unknown disease"
         
 
-def check_label(i, label): 
+def check_accuracy(i, label): 
     column_name = "diseases"
 
     if check_test_df.at[i, column_name] == label:
@@ -134,7 +145,15 @@ def check_label(i, label):
     else:
         return "0.0"
    
+correct_labels = 0
 
 for i in range(len(X_test)):
-    label = reverse_mapping(np.argmax(prediction[i]))
-    print( f"predicting for: {i}, category: {label}, accuracy: {check_label(i, label)}")
+    label = reverse_mapping(np.argmax(logits[i]))
+    acc = check_accuracy(i, label)
+    print( f"predicting for: {i}, category: {label}, accuracy: {acc}")
+    
+    if acc == "1.0":
+        correct_labels += 1
+    
+print(correct_labels)
+print(f"Average accuracy of the model: {(correct_labels / len(X_test)):0.2f}")
