@@ -10,12 +10,6 @@ import logging
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 tf.autograph.set_verbosity(0)
 
-
-# 433 Test Cases, 82% Accuracy
-# Multiclass Classification Neural Network 
-# Lung Doctor
-
-
 def remove_zero_variation(X):
     std_dev = np.std(X, axis=0)
     
@@ -76,15 +70,17 @@ norm_l = tf.keras.layers.Normalization(axis=-1)
 norm_l.adapt(X)  
 Xn = norm_l(X)
 
-Xt = np.tile(Xn,(100,1))
-Yt= np.tile(Y,(100,))   
+Xt = np.tile(Xn,(10,1))
+Yt= np.tile(Y,(10,))   
 
 tf.random.set_seed(1234)
 
 model = Sequential(
     [
         Dense(len(features), activation = 'relu'),
+        Dense(len(features) - 5, activation = 'relu'),
         Dense(len(features) - 10, activation = 'relu'),
+        Dense(len(features) - 20, activation = 'relu'),
         Dense(8, activation = 'linear')
     ]
 )
@@ -94,25 +90,15 @@ model.compile(
     optimizer=tf.keras.optimizers.Adam(0.0003),
 )
 
-# save best weights
-save_model = "my_model.keras"
-checkpoint = ModelCheckpoint(save_model, monitor="loss", save_best_only=True, mode="min")
-
 model.fit(
     Xt,Yt,
-    epochs=50,
-    callbacks=[checkpoint]
+    epochs=20
 )
-
-# 10, 100 epochs
 
 
 # TESTING
 file_path = 'data/lungdiseases_test.csv'
 check_test_df = pd.read_csv(file_path)
-
-# Load the saved best weights (Uncomment)
-# model.load_weights("save_model")
 
 logits = model.predict(X_test)
 f_x = tf.nn.softmax(logits).numpy()
@@ -137,23 +123,5 @@ def reverse_mapping(disease):
             return "Unknown disease"
         
 
-def check_accuracy(i, label): 
-    column_name = "diseases"
-
-    if check_test_df.at[i, column_name] == label:
-        return "1.0"
-    else:
-        return "0.0"
-   
-correct_labels = 0
-
 for i in range(len(X_test)):
-    label = reverse_mapping(np.argmax(logits[i]))
-    acc = check_accuracy(i, label)
-    print( f"predicting for: {i}, category: {label}, accuracy: {acc}")
-    
-    if acc == "1.0":
-        correct_labels += 1
-    
-print(correct_labels)
-print(f"Average accuracy of the model: {(correct_labels / len(X_test)):0.2f}")
+    print( f"{f_x[i]}, category: {reverse_mapping(np.argmax(f_x[i]))}")
