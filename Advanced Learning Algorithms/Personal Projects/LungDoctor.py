@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.datasets import make_blobs
+from sklearn.utils import shuffle
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -28,7 +28,7 @@ df = pd.read_csv(file_path)
 
 train_ratio = 0.9
 
-df = df.sample(frac=1, random_state=42).reset_index(drop=True)
+df = shuffle(df)
 
 split_index = int(len(df) * train_ratio)
 
@@ -45,15 +45,13 @@ X_test = test_df.drop(columns=['diseases']).to_numpy()
 print(X.shape[1])
 print(X_test.shape[1])
 
-X, features = remove_zero_variation(X)
-X_test, features = remove_zero_variation(X_test)
+# X, features = remove_zero_variation(X)
+# X_test, features = remove_zero_variation(X_test)
 
-print(len(features))
+print("Training set: ", X.shape[1])
+print("Testing set: ", X_test.shape[1])
 
-print(X.shape[1])
-print(X_test.shape[1])
-
-disease_mapper = {
+target_mapper = {
     'lung cancer':1,
     'asthma':2,
     'pneumonia':3,
@@ -63,24 +61,28 @@ disease_mapper = {
     'pulmonary fibrosis':7
     }
 
-train_df['diseases'] = train_df['diseases'].map(disease_mapper)
+train_df['diseases'] = train_df['diseases'].map(target_mapper)
 Y = train_df['diseases'].to_numpy()
 
 norm_l = tf.keras.layers.Normalization(axis=-1)
 norm_l.adapt(X)  
 Xn = norm_l(X)
 
-Xt = np.tile(Xn,(10,1))
-Yt= np.tile(Y,(10,))   
+Xt = np.tile(Xn,(100,1))
+Yt= np.tile(Y,(100,))   
 
 tf.random.set_seed(1234)
 
+print("Feature count: ", X.shape[1])
+
 model = Sequential(
     [
-        Dense(len(features), activation = 'relu'),
-        Dense(len(features) - 5, activation = 'relu'),
-        Dense(len(features) - 10, activation = 'relu'),
-        Dense(len(features) - 20, activation = 'relu'),
+        Dense(X.shape[1], activation = 'relu'),
+        Dense(256, activation = 'relu'),
+        Dense(128, activation = 'relu'),
+        Dense(64, activation = 'relu'),
+        Dense(32, activation = 'relu'),
+        Dense(16, activation = 'relu'),
         Dense(8, activation = 'linear')
     ]
 )
@@ -103,6 +105,12 @@ check_test_df = pd.read_csv(file_path)
 logits = model.predict(X_test)
 f_x = tf.nn.softmax(logits).numpy()
 
+def check_accuracy(row, category):
+    if check_test_df.at[row, "diseases"] == category:
+        return 1.0
+    else:
+        return 0.0
+
 def reverse_mapping(disease):
     match disease:
         case 1:
@@ -123,5 +131,13 @@ def reverse_mapping(disease):
             return "Unknown disease"
         
 
-for i in range(len(X_test)):
+average_accuracy = 0
+
+for i in range(len(X_test[:10])):
     print( f"{f_x[i]}, category: {reverse_mapping(np.argmax(f_x[i]))}")
+    average_accuracy += check_accuracy(i, reverse_mapping(np.argmax(f_x[i])))
+    
+print(f"Average accuracy: {average_accuracy / len(X_test[:10]):0.2f}%")
+
+
+
