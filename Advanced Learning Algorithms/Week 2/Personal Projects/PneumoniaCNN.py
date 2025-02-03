@@ -9,6 +9,15 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 import os
 
+##########################################################
+# Title: PneumoniaCNN
+# Model Type: Convolutional Neural Network for Binary Classification
+# Dataset: https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia
+
+# Goal: Analyse over 5000 xrays of lungs to determine whether they are of a person with pneumonia or of a healthy person.
+
+##########################################################
+
 data_dir = "C:/Users/Hami/Downloads/archive(13)"
 train_dir = os.path.join(data_dir, "train")
 val_dir = os.path.join(data_dir, "val")
