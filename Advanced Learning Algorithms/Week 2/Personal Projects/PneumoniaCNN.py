@@ -7,12 +7,17 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ReduceLROnPlateau
+from sklearn.metrics import classification_report
 import os
 
 ##########################################################
 # Title: PneumoniaCNN
 # Model Type: Convolutional Neural Network for Binary Classification
 # Dataset: https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia
+# Test Accuracy: 92.15%
+# "Normal" Precision: 93%
+# "Pneumonia" Precision: 91%
+# "Pneumonia" Recall: 96% (Very few false negatives)
 
 # Goal: Analyse over 5000 xrays of lungs to determine whether they are of a person with pneumonia or of a healthy person.
 
@@ -73,9 +78,28 @@ def train_cnn():
     loss, acc = model.evaluate(test_generator)
     print(f"Test Accuracy: {acc * 100:.2f}%")
 
-    best_acc = 0.92
+    best_acc = 0.9215
     if acc > best_acc:
         model.save('pneumonia_model.keras')
+       
+        
+def evaluate_model():
+    model = tf.keras.models.load_model('pneumonia_model.keras')
+    model.summary()
+    
+    true_labels = test_generator.classes 
+
+    class_labels = list(test_generator.class_indices.keys())
+
+    pred_probs = model.predict(test_generator)
+    print(pred_probs.shape) 
+    
+    threshold = 0.5  
+    pred_labels = (pred_probs > threshold).astype(int).flatten()
+
+    report = classification_report(true_labels, pred_labels, target_names=class_labels)
+    print(report)
+    
 
 def predict():
     model = tf.keras.models.load_model('pneumonia_model.keras')
@@ -116,5 +140,6 @@ def predict():
     plt.show()
     
      
-train_cnn() # Uncomment to train 
+# train_cnn() # Uncomment to train  
+evaluate_model()    
 predict()
