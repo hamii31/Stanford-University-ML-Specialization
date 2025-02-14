@@ -5,38 +5,52 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 # Ensemble Model for Pneumonia Classification
 
+# Models:
+#       - For Feature Classification: Random Forest Model for Binary Classification. Ran a GridSearchCV to find the best estimators and depth. Weights were manually
+#       calibrated to fit the class imbalances. Best Testing Accuracy: 96.215% (Excellent Model)
+#       
+#       - For Image Classification: Convolutional Neural Network for Binary Classification. 
+#       Reused the best weights for cv accuracy after each training, since the model had high variance issues.
+#       Best Testing Accuracy: 93.42% (Surpasses my previous Pneumonia X-ray CNN Model from which I transfered the structuring of layers and units.)
+#       
+#       - Ensemble Model: The combination of tabular and image classification offer a more robust take on pneumonia classification. 
+#       Overall accuracy of the model: 94.82%
 
-# Random Forest Model Accuracy: 0.9583727530747398
+# Augmented Datasets:
+#       - For Feature Classification: Only the lung diseases from https://www.kaggle.com/datasets/dhivyeshrk/diseases-and-symptoms-dataset 
+#       - For Image Classification: A mix between https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia and https://datasetninja.com/zhang-lab-data-chest-xray
+
+# Random Forest Model Accuracy: 0.9621570482497634
 # Random Forest Classification Report:
 #                precision    recall  f1-score   support
 
-#            0       0.96      0.99      0.97       819
-#            1       0.94      0.87      0.90       238
+#            0       0.95      1.00      0.98       819
+#            1       1.00      0.83      0.91       238
 
 #     accuracy                           0.96      1057
-#    macro avg       0.95      0.93      0.94      1057
+#    macro avg       0.98      0.92      0.94      1057
 # weighted avg       0.96      0.96      0.96      1057
 
-# CNN Model Accuracy: 0.9190705128205128
+# CNN Model Accuracy: 0.9342948717948718
 # CNN Classification Report:
 #                precision    recall  f1-score   support
 
-#            0       0.94      0.84      0.89       468
-#            1       0.91      0.97      0.94       780
+#            0       0.95      0.87      0.91       468
+#            1       0.93      0.97      0.95       780
 
-#     accuracy                           0.92      1248
-#    macro avg       0.92      0.90      0.91      1248
-# weighted avg       0.92      0.92      0.92      1248
+#     accuracy                           0.93      1248
+#    macro avg       0.94      0.92      0.93      1248
+# weighted avg       0.93      0.93      0.93      1248
 
 # ==================================================
-# Overal Accuracy of the Ensemble Model: 0.9387216329476262
+# 0.9482259600223176
 
 
 data = pd.read_csv("lungdiseases.csv")
@@ -47,19 +61,8 @@ y = data['diseases']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-param_grid = {
-    'n_estimators': [100, 200, 300],
-    'max_depth': [3, 5, 7, 10, 20, 40],
-    'learning_rate': [0.01, 0.1, 0.2],
-    'scale_pos_weight': [1, 2, 4, 8],  # Test different weights
-}
-
-grid_search = GridSearchCV(RandomForestClassifier(random_state=42), param_grid, scoring='f1', cv=3)
-grid_search.fit(X_train, y_train)
-
-print("Best parameters found:", grid_search.best_params_)
 print("Starting Random Forest for feature selection...")
-rf = RandomForestClassifier(n_estimators=100, class_weight={0: 5, 1: 3}, random_state=42)
+rf = RandomForestClassifier(n_estimators=100, class_weight={0: 5, 1: 3}, max_depth=10, random_state=42)
 rf.fit(X_train, y_train)
 
 rf_predictions_test = rf.predict(X_test)
@@ -155,9 +158,9 @@ checkpoint = ModelCheckpoint(
     verbose=1
 )  
 
-# cnn_model = load_model("best_cnn_model.keras")
-cnn_model.load_weights("og_cnn_model.keras")
-cnn_model.fit(train_generator, epochs=20, validation_data=val_generator, class_weight=class_weight, callbacks=[checkpoint])
+cnn_model = load_model("best_cnn_model.keras")
+# cnn_model.load_weights("og_cnn_model.keras")
+# cnn_model.fit(train_generator, epochs=20, validation_data=val_generator, class_weight=class_weight, callbacks=[checkpoint])
 
 cnn_predictions_train = cnn_model.predict(train_generator, verbose=1)
 cnn_predictions_test = cnn_model.predict(test_generator, verbose=1)
@@ -174,9 +177,8 @@ print("CNN Model Accuracy:", cnn_accuracy)
 print("CNN Classification Report:\n", cnn_report)
 print("="*50)
 
-if cnn_accuracy > 0.917:
+if cnn_accuracy > 0.9342:
     cnn_model.save("best_cnn_model.keras")
-
 
 combined_accuracy = (rf_accuracy + cnn_accuracy) / 2
 print(combined_accuracy)
