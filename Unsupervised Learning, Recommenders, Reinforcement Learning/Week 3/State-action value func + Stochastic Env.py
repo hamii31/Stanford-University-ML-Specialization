@@ -12,4 +12,4 @@ each_step_reward = 0
 gamma = 0.5
 
 # Probability of going in the wrong direction
-misstep_prob = 0
+misstep_prob = 0 # Change to 0.1 to apply stochastic environment where the agent can go in the wrong direction
